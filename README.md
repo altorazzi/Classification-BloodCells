@@ -1,4 +1,4 @@
-# Blood Cell Image Classification (AN2DL Homework)
+# Blood Cells Image Classification
 
 ## Project Overview
 This project was developed as part of the **Artificial Neural Networks course (Politecnico di Milano)**.  
