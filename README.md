@@ -1,38 +1,29 @@
-# Blood Cells Image Classification
+# Blood Cell Classification via MobileNetV3 & Test-Time Augmentation
 
 ## Project Overview
-This project was developed as part of the **Artificial Neural Networks course (Politecnico di Milano)**.  
-The task was to design and train deep learning models for **multi-class classification of blood cell images**.  
-The dataset contained **~13,000 RGB images (96×96 px)** across **8 different blood cell types**.  
+Developed a lightweight Deep Learning pipeline to classify **13,000 microscopic images** of blood cells into 8 distinct categories (e.g., Basophils, Lymphocytes, Platelets). 
 
-Our goal was to build an efficient architecture capable of achieving strong performance on a hidden test set, while handling data imbalance and noisy labels.
+The challenge involved handling a highly imbalanced dataset with significant noise (duplicates, outliers) and achieving high generalization on a hidden test set. The final solution leverages **MobileNetV3Large** with a two-stage training strategy and **Test-Time Augmentation (TTA)**.
 
----
+## Data Engineering
+We prioritized data quality over model complexity, using statistical methods to clean the input stream.
 
-## Methodology
+* **Outlier Detection via t-SNE:** Performed dimensionality reduction (t-SNE) to visualize the dataset manifold. Identified and removed clusters of "garbage" data
+* **Class Balancing:** Addressed severe imbalance by upsampling minority classes, using **Geometric Augmentation** (Rotation, Flip, Translation) rather than simple duplication to prevent overfitting.
 
-1. **Data Preprocessing**
-   - Removed duplicates and corrupted images using t-SNE visualization.
-   - Outlier detection identified mislabeled or irrelevant images (e.g., distorted or non-blood-cell pictures).
-   - Balanced dataset with **geometric augmentations** (rotations, flips, translations).
+## Model Architecture & Strategy
 
-2. **Data Augmentation**
-   - Applied **RandAugment** with 2 random transformations per image.
-   - Augmented validation set for underrepresented classes.
-   - Used **Test-Time Augmentation (TTA)** to improve robustness at inference.
+We adopted a **Transfer Learning** approach to maximize efficiency on limited hardware.
 
-3. **Modeling Approach**
-   - **Baseline CNN** (underperformed).  
-   - **EfficientNetB0** (moderate performance).  
-   - **MobileNetV3Small & Large** → best-performing backbone.  
-   - Final model: **MobileNetV3Large + custom dense & dropout layers**, fine-tuned end-to-end.
+### 1. Backbone: MobileNetV3Large
+* **Stage 1 (Transfer Learning):** Frozen backbone. Trained a custom dense head (128 units, ReLU, Dropout) using **L2 Regularization** and Adam optimizer.
+* **Stage 2 (Fine-Tuning):** Unfroze the top layers, increased L2 regularization to counteract the increased model capacity and reduced learning rate.
 
-4. **Training Strategy**
-   - Optimizer: Adam  
-   - Callbacks: EarlyStopping, ReduceLROnPlateau  
-   - Loss: Categorical Crossentropy with class weighting  
+### 2. Advanced Augmentation Pipeline
+* **Training:** Implemented **RandAugment** (parallelized in pipeline), applying 2 random transformations per image.
+* **Inference (TTA):** Applied **Test-Time Augmentation**. During testing, each image is augmented 5 times, and predictions are averaged.
 
----
+* **Insight:** The baseline CNN suffered massive overfitting (95% Val vs 24% Test). The switch to MobileNetV3 + TTA bridged the generalization gap significantly.
 
 ## Results
 
@@ -42,8 +33,7 @@ Our goal was to build an efficient architecture capable of achieving strong perf
 | EfficientNetB0      | 91.6%    | 56%       | 92%      |
 | **MobileNetV3Large** | **97.7%** | **82%**   | **97.6%** |
 
-**Best model**: MobileNetV3Large with advanced augmentation, achieving **82% accuracy** on the hidden test set.
-
+* **Insight:** The baseline CNN suffered massive overfitting (95% Val vs 24% Test). The switch to MobileNetV3 + TTA bridged the generalization gap significantly.
 ---
 
 ## Repository Structure
@@ -56,5 +46,4 @@ Our goal was to build an efficient architecture capable of achieving strong perf
 ## How to Run
 1. Clone the repo:
    ```bash
-   git clone https://github.com/<your-username>/<repo-name>.git
-   cd <repo-name>
+   git clone [https://github.com/altorazzi/Classification-BloodCells.git](https://github.com/altorazzi/Classification-BloodCells.git)
